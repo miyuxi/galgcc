@@ -5,21 +5,24 @@ GCC 报错处理器：读取 GCC 的 stderr，替换为自定义输出。
 后续可扩展：解析 JSON、调用 LLM、生成修复建议。
 """
 
+import argparse
 import sys
 
 
 def main():
-    # 从 stdin 读取 GCC 的原始 stderr
-    raw_stderr = sys.stdin.read()
+    # 读取编译状态
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exit-code", type=int, required=True)
+    args = parser.parse_args()
 
-    if not raw_stderr.strip():
-        # 没有任何报错，不输出
-        print("成功编译了呢喵~")
+    if args.exit_code == 0:
+        print("编译成功了呢喵~", file=sys.stderr)
         return
 
-    # === 简单版本：直接替换为 hello world ===
-    # 后续可在此处加入 JSON 解析 / LLM 推理
-    print("hello world", file=sys.stderr)
+    if args.exit_code == 1:
+        # 从 stdin 读取 GCC 的原始 stderr
+        raw_stderr = sys.stdin.read()
+        print(f"{raw_stderr}\n真是杂鱼呢喵~", file=sys.stderr)
 
 
 if __name__ == "__main__":
