@@ -14,6 +14,7 @@ def main():
 
     if not raw_stderr.strip():
         # 没有任何报错，不输出
+        print("成功编译了呢喵~")
         return
 
     # === 简单版本：直接替换为 hello world ===
