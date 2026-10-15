@@ -6,7 +6,37 @@ GCC 报错处理器：读取 GCC 的 stderr，替换为自定义输出。
 """
 
 import argparse
+import json
 import sys
+
+
+def success_quit():
+    print("编译成功了呢喵~", file=sys.stderr)
+
+
+def failed_quit():
+    # 从 stdin 读取 GCC 的原始 stderr
+    raw_stderr = sys.stdin.read()
+    try:
+        sarif = json.loads(raw_stderr)
+        # print(f"\n----------\n{data}\n----------\n", file=sys.stderr)
+        with open("output.json", "w") as file:
+            json.dump(sarif, file)
+        for run in sarif.get("runs", []):
+            for r in run.get("results", []):
+                ruleId = r.get("ruleId", [])
+
+                level = r.get("level", [])
+
+                message = r.get("message", [])
+                text = message.get("text", [])
+
+                print(
+                    f"\n\ruleId:{ruleId}\nlevel:{level}\nmessage:{text}\nlocations:\nfixes:\n\n",
+                    file=sys.stderr,
+                )
+    except json.JSONDecodeError:
+        print(raw_stderr)
 
 
 def main():
@@ -16,13 +46,9 @@ def main():
     args = parser.parse_args()
 
     if args.exit_code == 0:
-        print("编译成功了呢喵~", file=sys.stderr)
-        return
-
-    if args.exit_code == 1:
-        # 从 stdin 读取 GCC 的原始 stderr
-        raw_stderr = sys.stdin.read()
-        print(f"{raw_stderr}\n真是杂鱼呢喵~", file=sys.stderr)
+        success_quit()
+    else:
+        failed_quit()
 
 
 if __name__ == "__main__":
