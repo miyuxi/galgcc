@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""
-GCC 报错处理器：读取 GCC 的 stderr，替换为自定义输出。
-当前版本：把所有报错替换为 hello world。
-后续可扩展：解析 JSON、调用 LLM、生成修复建议。
-"""
 
 import argparse
 import json
+import os
 import sys
+
+from dotenv import load_dotenv
+from openai import OpenAI
 
 
 def success_quit():
@@ -31,12 +30,38 @@ def failed_quit():
                 message = r.get("message", [])
                 text = message.get("text", [])
 
+                """
                 print(
                     f"\n\ruleId:{ruleId}\nlevel:{level}\nmessage:{text}\nlocations:\nfixes:\n\n",
                     file=sys.stderr,
                 )
+                """
+                connect_llm(f"uleId:{ruleId}level:{level}message:{text}n")
+
     except json.JSONDecodeError:
         print(raw_stderr)
+
+
+def connect_llm(content):
+    load_dotenv()
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+
+    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+
+    response = client.chat.completions.create(
+        model="deepseek-flash",
+        messages=[
+            {
+                "role": "system",
+                "content": "你是gcc报错分析助手,根据信息给出报错类型,原因,可能的修改意见",
+            },
+            {"role": "user", "content": content},
+        ],
+        max_tokens=1024,
+        temperature=0.7,
+        stream=False,
+    )
+    print(response.choices[0].message.content, file=sys.stderr)
 
 
 def main():
