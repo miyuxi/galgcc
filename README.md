@@ -3,6 +3,7 @@
 
 ## 依赖
 pip install openai
+pip install tomli_w
 
 ## 安装
 拉取代码

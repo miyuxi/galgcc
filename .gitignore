@@ -1,4 +1,7 @@
 a.c
+a
+b.c
+b
 intovenv.zsh
 output.json
 test.py
