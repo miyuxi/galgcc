@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import sys
+import tomllib
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -32,11 +33,11 @@ def failed_quit():
 
                 """
                 print(
-                    f"\n\ruleId:{ruleId}\nlevel:{level}\nmessage:{text}\nlocations:\nfixes:\n\n",
+                    f"\n\nruleId:{ruleId}\nlevel:{level}\nmessage:{text}\nlocations:\nfixes:\n\n",
                     file=sys.stderr,
                 )
                 """
-                connect_llm(f"uleId:{ruleId}level:{level}message:{text}n")
+                connect_llm(f"ruleId:{ruleId}level:{level}message:{text}n")
 
     except json.JSONDecodeError:
         print(raw_stderr)
@@ -53,7 +54,7 @@ def connect_llm(content):
         messages=[
             {
                 "role": "system",
-                "content": "你是gcc报错分析助手,根据信息给出报错类型,原因,可能的修改意见",
+                "content": cfg["system_prompt"],
             },
             {"role": "user", "content": content},
         ],
@@ -62,6 +63,12 @@ def connect_llm(content):
         stream=False,
     )
     print(response.choices[0].message.content, file=sys.stderr)
+
+
+def init():
+    with open("config.toml", "rb") as f:
+        cfg = tomllib.load(f)
+    return cfg
 
 
 def main():
@@ -77,4 +84,5 @@ def main():
 
 
 if __name__ == "__main__":
+    cfg = init()
     main()
