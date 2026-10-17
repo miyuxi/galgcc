@@ -42,7 +42,9 @@ class Wrapper:
                         file=sys.stderr,
                     )
                     """
-                    self.connect_llm(f"ruleId:{ruleId}level:{level}message:{text}n")
+                    self.connect_llm(
+                        f"ruleId:{ruleId}level:{level}message:{text}likeability:{self.likeability}"
+                    )
 
         except json.JSONDecodeError:
             print(raw_stderr)
