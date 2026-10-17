@@ -2,8 +2,7 @@
 希望让c语言学习不再枯燥
 
 ## 依赖
-pip install openai
-pip install tomli_w
+pip install openai tomli_w
 
 ## 安装
 拉取代码
