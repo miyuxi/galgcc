@@ -24,7 +24,7 @@ gcc() {
 }
 export API_KEY="your-key"
 ```
-将~/galgcc/gcc_wrapper.py改成实际地址
+将~/galgcc/gcc_wrapper.py改成实际地址<br>
 将your-key改为你的apikey
 
 ## 实现方法
