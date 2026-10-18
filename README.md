@@ -5,7 +5,7 @@
 pip install openai tomli_w
 
 ## 安装
-拉取代码
+拉取代码<br>
 在.zshrc中添加一下函数
 ```sh
 gcc() {
@@ -29,6 +29,10 @@ export API_KEY="your-key"
 
 ## 实现方法
 通过同名函数转接,处理gcc报错信息
+
+## 待添加功能
+编译正确的分支<br>
+提示词的优化
 
 ## 灵感来源
 [kawaii-gcc](https://github.com/Bill-Haku/kawaii-gcc)<br>
