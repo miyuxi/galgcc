@@ -65,7 +65,7 @@ class Wrapper:
 
     def connect_llm(self, content):
         load_dotenv()
-        api_key = os.getenv("DEEPSEEK_API_KEY")
+        api_key = os.getenv("API_KEY")
 
         client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
 
@@ -100,4 +100,4 @@ def main():
 if __name__ == "__main__":
     wrap = Wrapper()
     main()
-    # print(f"{wrap.likeability}", file=sys.stderr)
+    print(f"{wrap.likeability}", file=sys.stderr)
