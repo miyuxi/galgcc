@@ -15,8 +15,9 @@ class Wrapper:
     def __init__(self):
         with open("config.toml", "rb") as f:
             self.config = tomllib.load(f)
-        self.prompt = self.config["prompt"]
-        self.likeability = self.config["numerical_value"]["likeability"]
+        self.system_prompt = self.config["prompt"]["system_prompt"]
+        self.likeability = self.config["affinity_system"]["likeability"]
+        self.affinity_levels = self.config["affinity_system"]["affinity_levels"]
 
     def like_change(self, num):
         self.likeability += num
@@ -24,9 +25,15 @@ class Wrapper:
             self.likeability = 0
         elif self.likeability > 100:
             self.likeability = 100
-        self.config["numerical_value"]["likeability"] = self.likeability
+        self.config["affinity_system"]["likeability"] = self.likeability
         with open("config.toml", "wb") as f:
             tomli_w.dump(self.config, f)
+
+    def get_like_level(self):
+        rules = [(item["threshold"], item["level"]) for item in self.affinity_levels]
+        for threshold, level in reversed(rules):
+            if self.likeability >= threshold:
+                return level
 
     def success_quit(self):
         print("编译成功了呢喵~", file=sys.stderr)
@@ -55,15 +62,19 @@ class Wrapper:
                         file=sys.stderr,
                     )
                     """
+                    with open(f"./prompts/{self.get_like_level()}.toml", "rb") as f:
+                        like_prompt = tomllib.load(f)
+                    like_prompt = like_prompt["like_prompt"]
                     self.connect_llm(
-                        f"ruleId:{ruleId}level:{level}message:{text}likeability:{self.likeability}"
+                        f"ruleId:{ruleId}level:{level}message:{text}likeability:{self.likeability}",
+                        f"{self.system_prompt}{like_prompt}",
                     )
                     like_change_num -= 1
             self.like_change(like_change_num)
         except json.JSONDecodeError:
             print(raw_stderr)
 
-    def connect_llm(self, content):
+    def connect_llm(self, user_content, system_prompt):
         load_dotenv()
         api_key = os.getenv("API_KEY")
 
@@ -74,9 +85,9 @@ class Wrapper:
             messages=[
                 {
                     "role": "system",
-                    "content": self.prompt["system_prompt"],
+                    "content": system_prompt,
                 },
-                {"role": "user", "content": content},
+                {"role": "user", "content": user_content},
             ],
             max_tokens=1024,
             temperature=0.7,
