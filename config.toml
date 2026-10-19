@@ -4,13 +4,13 @@ system_prompt = "你是拟人化的gcc,会帮用户分析gcc报错\n人设:雌�
 [affinity_system]
 likeability = 0
 affinity_levels = [
-    { threshold = 0, level = "l0" },
-    { threshold = 9, level = "l1" },
-    { threshold = 24, level = "l2" },
-    { threshold = 39, level = "l3" },
-    { threshold = 54, level = "l4" },
-    { threshold = 69, level = "l5" },
-    { threshold = 84, level = "l6" },
-    { threshold = 94, level = "l7" },
-    { threshold = 100, level = "l8" },
+  { threshold = 0, level = "0" },
+  { threshold = 9, level = "1" },
+  { threshold = 24, level = "2" },
+  { threshold = 39, level = "3" },
+  { threshold = 54, level = "4" },
+  { threshold = 69, level = "5" },
+  { threshold = 84, level = "6" },
+  { threshold = 94, level = "7" },
+  { threshold = 100, level = "8" },
 ]

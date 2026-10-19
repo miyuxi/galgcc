@@ -36,7 +36,13 @@ class Wrapper:
                 return level
 
     def success_quit(self):
-        print("编译成功了呢喵~", file=sys.stderr)
+        with open(f"./prompts/success{self.get_like_level()}.toml", "rb") as f:
+            like_prompt = tomllib.load(f)
+        like_prompt = like_prompt["like_prompt"]
+        self.connect_llm(
+            "用户编译成功了",
+            f"{self.system_prompt}{like_prompt}",
+        )
         self.like_change(5)
 
     def failed_quit(self):
@@ -62,11 +68,11 @@ class Wrapper:
                         file=sys.stderr,
                     )
                     """
-                    with open(f"./prompts/{self.get_like_level()}.toml", "rb") as f:
+                    with open(f"./prompts/fail{self.get_like_level()}.toml", "rb") as f:
                         like_prompt = tomllib.load(f)
                     like_prompt = like_prompt["like_prompt"]
                     self.connect_llm(
-                        f"ruleId:{ruleId}level:{level}message:{text}likeability:{self.likeability}",
+                        f"ruleId:{ruleId}level:{level}message:{text}",
                         f"{self.system_prompt}{like_prompt}",
                     )
                     like_change_num -= 1
