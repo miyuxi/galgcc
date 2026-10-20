@@ -18,6 +18,12 @@ class Wrapper:
         self.system_prompt = self.config["prompt"]["system_prompt"]
         self.likeability = self.config["affinity_system"]["likeability"]
         self.affinity_levels = self.config["affinity_system"]["affinity_levels"]
+        self.character = self.config["character"]["current"]
+        self.like_level = self.get_like_level()
+        self.fail_path = f"./prompts/{self.character}/fail/fail{self.like_level}.toml"
+        self.success_path = (
+            f"./prompts/{self.character}/success/success{self.like_level}.toml"
+        )
 
     def like_change(self, num):
         self.likeability += num
@@ -36,7 +42,7 @@ class Wrapper:
                 return level
 
     def success_quit(self):
-        with open(f"./prompts/success{self.get_like_level()}.toml", "rb") as f:
+        with open(self.success_path, "rb") as f:
             like_prompt = tomllib.load(f)
         like_prompt = like_prompt["like_prompt"]
         self.connect_llm(
@@ -48,11 +54,13 @@ class Wrapper:
     def failed_quit(self):
         raw_stderr = sys.stdin.read()
         try:
+            with open(self.fail_path, "rb") as f:
+                like_prompt = tomllib.load(f)
+            like_prompt = like_prompt["like_prompt"]
+
             sarif = json.loads(raw_stderr)
-            """
             with open("output.json", "w") as file:
                 json.dump(sarif, file)
-            """
             like_change_num = 0
             for run in sarif.get("runs", []):
                 for r in run.get("results", []):
@@ -62,18 +70,18 @@ class Wrapper:
 
                     message = r.get("message", [])
                     text = message.get("text", [])
-                    """
+
+                    locations = r.get("locations", [])[0]
+                    physicalLocation = locations.get("physicalLocation", [])
+                    artifactLocation = physicalLocation.get("artifactLocation", [])
+                    uri = artifactLocation.get("uri", [])
+                    region = physicalLocation.get("region", [])
+                    startLine = region.get("startLine", [])
+                    startColumn = region.get("startColumn", [])
+
                     print(
-                        f"\n\nruleId:{ruleId}\nlevel:{level}\nmessage:{text}\nlocations:\nfixes:\n\n",
+                        f"{uri}:{startLine}:{startColumn}: {self.connect_llm(f'level:{level}message:{text}', f'{self.system_prompt}{like_prompt}')} [{ruleId}]",
                         file=sys.stderr,
-                    )
-                    """
-                    with open(f"./prompts/fail{self.get_like_level()}.toml", "rb") as f:
-                        like_prompt = tomllib.load(f)
-                    like_prompt = like_prompt["like_prompt"]
-                    self.connect_llm(
-                        f"ruleId:{ruleId}level:{level}message:{text}",
-                        f"{self.system_prompt}{like_prompt}",
                     )
                     like_change_num -= 1
             self.like_change(like_change_num)
@@ -99,7 +107,7 @@ class Wrapper:
             temperature=0.7,
             stream=False,
         )
-        print(response.choices[0].message.content, file=sys.stderr)
+        return response.choices[0].message.content
 
 
 def main():
@@ -117,4 +125,3 @@ def main():
 if __name__ == "__main__":
     wrap = Wrapper()
     main()
-    print(f"{wrap.likeability}", file=sys.stderr)
