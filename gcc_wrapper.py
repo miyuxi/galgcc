@@ -64,6 +64,7 @@ class Wrapper:
             like_change_num = 0
             for run in sarif.get("runs", []):
                 for r in run.get("results", []):
+                    """
                     ruleId = r.get("ruleId", [])
 
                     level = r.get("level", [])
@@ -78,6 +79,11 @@ class Wrapper:
                     region = physicalLocation.get("region", [])
                     startLine = region.get("startLine", [])
                     startColumn = region.get("startColumn", [])
+                    """
+
+                    uri, startLine, startColumn, level, text, ruleId = (
+                        self.error_message_extraction(r)
+                    )
 
                     print(
                         f"{uri}:{startLine}:{startColumn}: {self.connect_llm(f'level:{level}message:{text}', f'{self.system_prompt}{like_prompt}')} [{ruleId}]",
@@ -87,6 +93,23 @@ class Wrapper:
             self.like_change(like_change_num)
         except json.JSONDecodeError:
             print(raw_stderr)
+
+    def error_message_extraction(self, r):
+        ruleId = r.get("ruleId", [])
+
+        level = r.get("level", [])
+
+        message = r.get("message", [])
+        text = message.get("text", [])
+
+        locations = r.get("locations", [])[0]
+        physicalLocation = locations.get("physicalLocation", [])
+        artifactLocation = physicalLocation.get("artifactLocation", [])
+        uri = artifactLocation.get("uri", [])
+        region = physicalLocation.get("region", [])
+        startLine = region.get("startLine", [])
+        startColumn = region.get("startColumn", [])
+        return uri, startLine, startColumn, level, text, ruleId
 
     def connect_llm(self, user_content, system_prompt):
         load_dotenv()
