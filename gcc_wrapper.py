@@ -13,12 +13,15 @@ import tomli_w
 
 class Wrapper:
     def __init__(self):
-        with open("config.toml", "rb") as f:
+        with open(".config.toml", "rb") as f:
             self.config = tomllib.load(f)
         self.system_prompt = self.config["prompt"]["system_prompt"]
         self.likeability = self.config["affinity_system"]["likeability"]
         self.affinity_levels = self.config["affinity_system"]["affinity_levels"]
         self.character = self.config["character"]["current"]
+        with open(f"prompts/{self.character}/core_prompt.toml", "rb") as f:
+            self.character_prompt = tomllib.load(f)
+        self.character_prompt = self.character_prompt["core"]
         self.like_level = self.get_like_level()
         self.fail_path = f"./prompts/{self.character}/fail/fail{self.like_level}.toml"
         self.success_path = (
@@ -32,7 +35,7 @@ class Wrapper:
         elif self.likeability > 100:
             self.likeability = 100
         self.config["affinity_system"]["likeability"] = self.likeability
-        with open("config.toml", "wb") as f:
+        with open(".config.toml", "wb") as f:
             tomli_w.dump(self.config, f)
 
     def get_like_level(self):
@@ -47,7 +50,7 @@ class Wrapper:
         like_prompt = like_prompt["like_prompt"]
         self.connect_llm(
             "用户编译成功了",
-            f"{self.system_prompt}{like_prompt}",
+            f"{self.system_prompt}{self.character_prompt}{like_prompt}",
         )
         self.like_change(5)
 
@@ -64,29 +67,12 @@ class Wrapper:
             like_change_num = 0
             for run in sarif.get("runs", []):
                 for r in run.get("results", []):
-                    """
-                    ruleId = r.get("ruleId", [])
-
-                    level = r.get("level", [])
-
-                    message = r.get("message", [])
-                    text = message.get("text", [])
-
-                    locations = r.get("locations", [])[0]
-                    physicalLocation = locations.get("physicalLocation", [])
-                    artifactLocation = physicalLocation.get("artifactLocation", [])
-                    uri = artifactLocation.get("uri", [])
-                    region = physicalLocation.get("region", [])
-                    startLine = region.get("startLine", [])
-                    startColumn = region.get("startColumn", [])
-                    """
-
                     uri, startLine, startColumn, level, text, ruleId = (
                         self.error_message_extraction(r)
                     )
 
                     print(
-                        f"{uri}:{startLine}:{startColumn}: {self.connect_llm(f'level:{level}message:{text}', f'{self.system_prompt}{like_prompt}')} [{ruleId}]",
+                        f"{uri}:{startLine}:{startColumn}: {self.connect_llm(f'level:{level}message:{text}', f'{self.system_prompt}{self.character_prompt}{like_prompt}')} [{ruleId}]",
                         file=sys.stderr,
                     )
                     like_change_num -= 1
