@@ -1,11 +1,16 @@
 import tomllib
+from pathlib import Path
 
 import tomli_w
+
+# 与 gcc_wrapper.py 保持一致: 配置文件始终指向本仓库, 不受调用时的工作目录影响
+BASE_DIR = Path(__file__).resolve().parent
+CONFIG_PATH = BASE_DIR / ".config.toml"
 
 
 class Preferences:
     def __init__(self):
-        self.config_path = ".config.toml"
+        self.config_path = CONFIG_PATH
         with open(self.config_path, "rb") as f:
             self.config = tomllib.load(f)
         self.likeability = self.config["affinity_system"]["likeability"]

@@ -5,27 +5,35 @@ import json
 import os
 import sys
 import tomllib
+from pathlib import Path
 
 import tomli_w
 from dotenv import load_dotenv
 from openai import OpenAI
 
+# 所有资源都以本文件所在目录为基准, 这样在任意工作目录下调用都能正常工作
+BASE_DIR = Path(__file__).resolve().parent
+CONFIG_PATH = BASE_DIR / ".config.toml"
+PROMPTS_DIR = BASE_DIR / "prompts"
+
 
 class Wrapper:
     def __init__(self):
-        with open(".config.toml", "rb") as f:
+        with open(CONFIG_PATH, "rb") as f:
             self.config = tomllib.load(f)
         self.system_prompt = self.config["prompt"]["system_prompt"]
         self.likeability = self.config["affinity_system"]["likeability"]
         self.affinity_levels = self.config["affinity_system"]["affinity_levels"]
         self.character = self.config["character"]["current"]
-        with open(f"prompts/{self.character}/core_prompt.toml", "rb") as f:
+        with open(PROMPTS_DIR / self.character / "core_prompt.toml", "rb") as f:
             self.character_prompt = tomllib.load(f)
         self.character_prompt = self.character_prompt["core"]
         self.like_level = self.get_like_level()
-        self.fail_path = f"./prompts/{self.character}/fail/fail{self.like_level}.toml"
+        self.fail_path = (
+            PROMPTS_DIR / self.character / "fail" / f"fail{self.like_level}.toml"
+        )
         self.success_path = (
-            f"./prompts/{self.character}/success/success{self.like_level}.toml"
+            PROMPTS_DIR / self.character / "success" / f"success{self.like_level}.toml"
         )
 
     def like_change(self, num):
@@ -35,7 +43,7 @@ class Wrapper:
         elif self.likeability > 100:
             self.likeability = 100
         self.config["affinity_system"]["likeability"] = self.likeability
-        with open(".config.toml", "wb") as f:
+        with open(CONFIG_PATH, "wb") as f:
             tomli_w.dump(self.config, f)
 
     def get_like_level(self):
@@ -96,7 +104,7 @@ class Wrapper:
         return uri, startLine, startColumn, level, text, ruleId
 
     def connect_llm(self, user_content, system_prompt):
-        load_dotenv()
+        load_dotenv(BASE_DIR / ".env")
         api_key = os.getenv("API_KEY")
 
         client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
