@@ -56,9 +56,13 @@ class Wrapper:
         with open(self.success_path, "rb") as f:
             like_prompt = tomllib.load(f)
         like_prompt = like_prompt["like_prompt"]
-        self.connect_llm(
-            "用户编译成功了",
-            f"{self.system_prompt}{self.character_prompt}{like_prompt}",
+        print(
+            f"{
+                self.connect_llm(
+                    '用户编译成功了',
+                    f'{self.system_prompt}{self.character_prompt}{like_prompt}',
+                )
+            }"
         )
         self.like_change(5)
 
