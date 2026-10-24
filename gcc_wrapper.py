@@ -6,9 +6,9 @@ import os
 import sys
 import tomllib
 
+import tomli_w
 from dotenv import load_dotenv
 from openai import OpenAI
-import tomli_w
 
 
 class Wrapper:
@@ -62,8 +62,6 @@ class Wrapper:
             like_prompt = like_prompt["like_prompt"]
 
             sarif = json.loads(raw_stderr)
-            with open("output.json", "w") as file:
-                json.dump(sarif, file)
             like_change_num = 0
             for run in sarif.get("runs", []):
                 for r in run.get("results", []):

@@ -2,7 +2,7 @@
 为gcc添加好感度系统
 
 ## 依赖
-pip install openai tomli_w
+pip install openai tomli_w python-dotenv
 
 ## 安装
 拉取代码<br>
